@@ -10,6 +10,11 @@ const { initializeSocket, setSocketInstance } = require("./config/socket.config"
 const { closeRedisConnection, createRedisClient } = require("./config/redis");
 
 const PORT = process.env.PORT || 5000;
+
+const REDIS_ERROR_NAMES = ["MaxRetriesPerRequestError", "ReplyError", "AbortError"];
+const isRedisError = (error) =>
+  Boolean(error) &&
+  (REDIS_ERROR_NAMES.includes(error.name) || /Connection is closed/.test(error.message || ""));
 // Number of worker processes. Free hosts (e.g. Render) have little RAM, so default to 1.
 // Socket.IO needs sticky sessions if you run more than one worker behind a load balancer.
 const numWorkers = Math.max(1, parseInt(process.env.WEB_CONCURRENCY, 10) || 1);
@@ -131,6 +136,12 @@ if (cluster.isPrimary) {
   });
 
   process.on("unhandledRejection", (error) => {
+    // A failed Redis command (Redis down or unreachable) should not take the
+    // whole worker down: drafts/real-time degrade, everything else keeps working.
+    if (isRedisError(error)) {
+      logger.error(`Worker ${process.pid} Redis command failed: ${error.message}`);
+      return;
+    }
     try {
       logger.error(`Worker ${process.pid} Unhandled Rejection`, {
         error: error.message,

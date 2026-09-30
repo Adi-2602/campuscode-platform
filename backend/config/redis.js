@@ -27,18 +27,22 @@ const createRedisClient = () => {
     // Max retries per command
     maxRetriesPerRequest: 3,
     
-    // Retry strategy for reconnection
+    // Retry strategy for reconnection. Keeps retrying by default so the app
+    // recovers on its own after a Redis outage; set REDIS_MAX_RETRIES to give up.
     retryStrategy(times) {
-      const maxRetries = parseInt(process.env.REDIS_MAX_RETRIES) || 10;
-      
-      if (times > maxRetries) {
+      const maxRetries = parseInt(process.env.REDIS_MAX_RETRIES) || 0;
+
+      if (maxRetries > 0 && times > maxRetries) {
         logger.error(`Redis max retries (${maxRetries}) exceeded`);
         return null; // Stop retrying
       }
-      
-      // Exponential backoff: 50ms, 100ms, 200ms, 400ms, ..., max 3000ms
+
+      // Backoff: 50ms, 100ms, 150ms, ... capped at 3000ms
       const delay = Math.min(times * 50, 3000);
-      logger.warn(`Redis retry attempt ${times}, reconnecting in ${delay}ms`);
+      // Log the first few attempts, then only every 20th, to keep logs readable
+      if (times <= 3 || times % 20 === 0) {
+        logger.warn(`Redis retry attempt ${times}, reconnecting in ${delay}ms`);
+      }
       return delay;
     },
     
@@ -55,8 +59,16 @@ const createRedisClient = () => {
 
   // REDIS_URL (e.g. Upstash "rediss://default:<password>@<host>:6379") wins over host/port.
   // The "rediss://" scheme turns on TLS automatically.
-  redisClient = process.env.REDIS_URL
-    ? new Redis(process.env.REDIS_URL, redisConfig)
+  let redisUrl = process.env.REDIS_URL;
+  // Upstash only accepts TLS; a "redis://" URL gets its connection dropped
+  // straight away (EPIPE / connection closed), so upgrade it to "rediss://".
+  if (redisUrl && redisUrl.startsWith('redis://') && redisUrl.includes('.upstash.io')) {
+    logger.warn('REDIS_URL points to Upstash but uses redis:// - switching to rediss:// (TLS)');
+    redisUrl = 'rediss://' + redisUrl.slice('redis://'.length);
+  }
+
+  redisClient = redisUrl
+    ? new Redis(redisUrl, redisConfig)
     : new Redis(redisConfig);
 
   // Event handlers
@@ -69,7 +81,7 @@ const createRedisClient = () => {
   });
 
   redisClient.on('error', (err) => {
-    logger.error('❌ Redis client error:', err.message);
+    logger.error(`❌ Redis client error: ${err.message}`);
   });
 
   redisClient.on('close', () => {
