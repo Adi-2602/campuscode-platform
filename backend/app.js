@@ -49,6 +49,14 @@ const slotTimetableRoutes = require("./routes/slotTimetable.routes");
 
 const app = express();
 
+// Behind a hosting proxy (Render, Nginx) req.ip is the proxy's address unless Express
+// trusts it, which makes the rate limiter count every user as one IP.
+// TRUST_PROXY = number of proxy hops in front of the app (Render: 1). Unset locally.
+if (process.env.TRUST_PROXY) {
+   const hops = Number(process.env.TRUST_PROXY);
+   app.set("trust proxy", Number.isInteger(hops) ? hops : process.env.TRUST_PROXY === "true");
+}
+
 const cors = require("cors");
 const requestLogger = require("./middlewares/logger.middleware");
 

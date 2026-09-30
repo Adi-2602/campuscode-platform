@@ -160,6 +160,7 @@ Full lists with comments are in [`backend/.env.example`](backend/.env.example) a
 | `FRONTEND_URL` | yes in prod | Frontend origin for CORS and password-reset links |
 | `PORT` | no | HTTP port (default 5000; Render sets it for you) |
 | `WEB_CONCURRENCY` | no | Number of worker processes (default 1) |
+| `TRUST_PROXY` | on Render | Proxy hops in front of the app (`1` on Render) so rate limiting sees each user's real IP |
 | `NODE_ENV` | no | `production` hides error stack traces |
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`, `EMAIL_FROM_NAME` | for email | SMTP settings. For Gmail, use an App Password |
 | `EMAIL_BATCH_SIZE`, `EMAIL_BATCH_DELAY` | no | Bulk email pacing |
@@ -201,7 +202,7 @@ The whole stack fits in free tiers: **Atlas** (database) + **Upstash** (Redis) +
 ### 4. Backend on Render
 1. [render.com](https://render.com) → *New → Web Service* → connect this GitHub repo.
 2. Root directory: `backend`. Runtime: Node. Build command: `npm ci`. Start command: `npm start`. Instance type: Free.
-3. Add environment variables: `MONGO_URI`, `JWT_SECRET`, `REDIS_URL`, `JUDGE0_URL`, `JUDGE0_API_KEY`, `JUDGE0_API_HOST`, `NODE_ENV=production`, `WEB_CONCURRENCY=1`, and the `EMAIL_*` values if you want emails. Do not set `PORT`; Render provides it.
+3. Add environment variables: `MONGO_URI`, `JWT_SECRET`, `REDIS_URL`, `JUDGE0_URL`, `JUDGE0_API_KEY`, `JUDGE0_API_HOST`, `NODE_ENV=production`, `WEB_CONCURRENCY=1`, `TRUST_PROXY=1`, and the `EMAIL_*` values if you want emails. Do not set `PORT`; Render provides it.
 4. Deploy and note the URL, e.g. `https://campuscode-api.onrender.com`. Opening it should show "Welcome to backend".
 5. Create the superadmin once. Either open the service *Shell* on Render and run `SUPERADMIN_EMAIL=... SUPERADMIN_PASSWORD=... npm run create-superadmin`, or run the same command on your laptop with `MONGO_URI` pointing at Atlas.
 6. Free Render services go to sleep after about 15 minutes without traffic, so the first request after that can take up to a minute.
