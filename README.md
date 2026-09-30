@@ -105,22 +105,36 @@ cd <repo-name>
 
 ```bash
 cd backend
-cp .env.example .env          # then fill in MONGO_URI, JWT_SECRET, JUDGE0_URL, Redis...
-npm install
-SUPERADMIN_EMAIL=you@example.com SUPERADMIN_PASSWORD='pick-a-strong-one' npm run create-superadmin
-npm run dev                   # nodemon, restarts on file changes -> http://localhost:5000
+cp .env.example .env
 ```
 
-Quick Redis with Docker: `docker run -d -p 6379:6379 redis:7-alpine`
+Open `backend/.env` and fill in at least `MONGO_URI`, `JWT_SECRET`, `JUDGE0_URL` and Redis (`REDIS_URL`, or the local defaults). Then:
+
+```bash
+npm install
+SUPERADMIN_EMAIL=you@example.com SUPERADMIN_PASSWORD='pick-a-strong-one' npm run create-superadmin
+npm run dev
+```
+
+The API runs on http://localhost:5000 and restarts when you save a file.
+
+Redis for local development, pick one:
+- Paste your Upstash URL into `REDIS_URL` (no install needed)
+- macOS: `brew install redis && brew services start redis`
+- Docker (Docker Desktop must be running): `docker run -d -p 6379:6379 redis:7-alpine`
 
 **Frontend**
 
+In a second terminal, from the repo root:
+
 ```bash
 cd frontend
-cp .env.example .env          # VITE_API_BASE_URL=http://localhost:5000
+cp .env.example .env
 npm install
-npm run dev                   # http://localhost:5173
+npm run dev
 ```
+
+The app opens on http://localhost:5173 (`VITE_API_BASE_URL` in `frontend/.env` should be `http://localhost:5000`).
 
 Log in with the superadmin account you created.
 
