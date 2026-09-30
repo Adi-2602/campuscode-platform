@@ -1,0 +1,62 @@
+{
+  "name": "compilerprtotype",
+  "version": "1.0.0",
+  "description": "This is a academic protoype for the code compiler powered by judege0 and Mtech CSE FSD SRM student to build a coding platform for the student",
+  "keywords": [
+    "compiler",
+    "code",
+    "language",
+    "CSE",
+    "platform"
+  ],
+  "homepage": "https://github.com/Adi-2602/CampusCode#readme",
+  "bugs": {
+    "url": "https://github.com/Adi-2602/CampusCode/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Adi-2602/CampusCode.git"
+  },
+  "license": "ISC",
+  "author": "Avi Ranjan, Aditya",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "start:solo": "node start_solo.js",
+    "create-superadmin": "node scripts/createSuperadmin.js"
+  },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "ioredis": "^5.9.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.1.4",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.13",
+    "pdfkit": "^0.17.2",
+    "socket.io": "^4.8.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "systeminformation": "^5.30.6",
+    "tail": "^2.2.6",
+    "winston": "^3.19.0",
+    "winston-mongodb": "^7.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

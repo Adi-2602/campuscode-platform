@@ -1,0 +1,58 @@
+[
+  {
+    "Sno": 1,
+    "Faculty ID": 900005,
+    "Faculty Name": "Dr. E. Suresh",
+    "Designation": "Professor",
+    "Mobile No": 9300000001,
+    "Email ID": "faculty01@example.edu"
+  },
+  {
+    "Sno": 2,
+    "Faculty ID": 900006,
+    "Faculty Name": "Dr. F. Kavya",
+    "Designation": "Professor",
+    "Mobile No": 9300000002,
+    "Email ID": "faculty02@example.edu"
+  },
+  {
+    "Sno": 3,
+    "Faculty ID": 900007,
+    "Faculty Name": "Dr. G. Prakash",
+    "Designation": "Professor",
+    "Mobile No": 9300000003,
+    "Email ID": "faculty03@example.edu"
+  },
+  {
+    "Sno": 4,
+    "Faculty ID": 900008,
+    "Faculty Name": "Dr. H. Deepa",
+    "Designation": "Professor",
+    "Mobile No": 9300000004,
+    "Email ID": "faculty04@example.edu"
+  },
+  {
+    "Sno": 5,
+    "Faculty ID": 900009,
+    "Faculty Name": "Dr. I. Mohan",
+    "Designation": "Professor",
+    "Mobile No": 9300000005,
+    "Email ID": "faculty05@example.edu"
+  },
+  {
+    "Sno": 6,
+    "Faculty ID": 900010,
+    "Faculty Name": "Dr. J. Revathi",
+    "Designation": "Professor",
+    "Mobile No": 9300000006,
+    "Email ID": "faculty06@example.edu"
+  },
+  {
+    "Sno": 7,
+    "Faculty ID": 900011,
+    "Faculty Name": "Mrs. K. Priya",
+    "Designation": "Professor",
+    "Mobile No": 9300000007,
+    "Email ID": "faculty07@example.edu"
+  }
+]

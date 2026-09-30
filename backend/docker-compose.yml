@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # Redis Service (Auto-save storage)
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: campuscode-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --appendfsync everysec
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - campuscode-network
+
+  # ========================================
+  # Backend API Service
+  # ========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campuscode-backend
+    ports:
+      - "3000:3000"
+    environment:
+      # Application
+      NODE_ENV: production
+      PORT: 3000
+      
+      # MongoDB (Your existing cloud MongoDB)
+      MONGO_URI: ${MONGO_URI}
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      
+      # Judge0
+      JUDGE0_URL: ${JUDGE0_URL}
+      
+      # Redis (Connect to redis container)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      
+      # Redis Tuning
+      REDIS_MAX_RETRIES: 10
+      REDIS_CONNECT_TIMEOUT: 10000
+      REDIS_COMMAND_TIMEOUT: 5000
+      REDIS_KEEP_ALIVE: 30000
+      
+      # Auto-save Config
+      DRAFT_TTL_BUFFER_HOURS: 1
+      MAX_CODE_SIZE_BYTES: 204800
+      REDIS_KEY_PREFIX: campuscode:draft
+      
+      # Logging
+      USE_DB_LOGS: true
+      LOG_LEVEL: info
+    
+    volumes:
+      - ./logs:/app/logs
+    
+    depends_on:
+      redis:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    restart: unless-stopped
+    
+    networks:
+      - campuscode-network
+
+  # ========================================
+  # Redis Commander (Optional - Web UI for Redis)
+  # ========================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: campuscode-redis-ui
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - campuscode-network
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  campuscode-network:
+    driver: bridge
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  redis-data:
+    driver: local
