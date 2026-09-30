@@ -39,7 +39,15 @@ const DataUpload = () => {
                 adminService.getUploadStatistics(),
                 adminService.getAllUploads({ limit: 10 })
             ]);
-            setStats(statsRes.data);
+            const byStatus = Object.fromEntries(
+                (statsRes.data.byStatus || []).map(({ _id, count }) => [_id, count])
+            );
+            setStats({
+                totalUploads: statsRes.data.total ?? 0,
+                completed: byStatus.completed ?? 0,
+                processing: byStatus.processing ?? 0,
+                failed: byStatus.failed ?? 0
+            });
             setUploads(uploadsRes.data.uploads || []);
         } catch (error) {
             console.error(error);
@@ -55,6 +63,19 @@ const DataUpload = () => {
         } catch (error) {
             console.error(error);
         }
+    };
+
+    const waitForUpload = async (uploadId, timeoutMs = 120000) => {
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+            const res = await adminService.getUploadStatus(uploadId);
+            const upload = res.data.upload;
+            if (upload && upload.status !== 'processing' && upload.status !== 'pending') {
+                return upload;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        throw new Error('Still processing - press Refresh in a minute');
     };
 
     const handleFileChange = (e) => {
@@ -80,8 +101,13 @@ const DataUpload = () => {
 
         try {
             const res = await adminService.uploadSemesterData(formData);
-            const result = res.data.result;
-            const stats = result.stats;
+            // The backend only starts the job and returns { uploadId, status: "processing" }.
+            // Poll until it finishes, then show the real stats.
+            const upload = await waitForUpload(res.data.result.uploadId);
+            if (upload.status !== 'completed') {
+                throw new Error(upload.errors?.[0]?.message || `Upload ${upload.status}`);
+            }
+            const stats = upload.stats || {};
 
             toast.dismiss(toastId);
             toast.custom((t) => (
@@ -96,11 +122,11 @@ const DataUpload = () => {
                                     Upload Completed Successfully!
                                 </p>
                                 <div className="mt-1 text-sm text-slate-400 space-y-1">
-                                    <p><strong>Students:</strong> {stats.studentsCreated} created, {stats.studentsUpdated} updated (Total: {stats.studentsTotal})</p>
-                                    <p><strong>Teachers:</strong> {stats.teachersCreated} created, {stats.teachersUpdated} updated</p>
-                                    <p><strong>Assignments:</strong> {stats.teachersValid} valid / {stats.teachersTotal} total</p>
-                                    <p><strong>Classes:</strong> {stats.classesCreated} created</p>
-                                    <p><strong>Enrollments:</strong> {stats.enrollmentsCreated} entries</p>
+                                    <p><strong>Students:</strong> {stats.studentsCreated ?? 0} created, {stats.studentsUpdated ?? 0} updated (Total: {stats.studentsTotal ?? 0})</p>
+                                    <p><strong>Teachers:</strong> {stats.teachersCreated ?? 0} created, {stats.teachersUpdated ?? 0} updated</p>
+                                    <p><strong>Assignments:</strong> {stats.teachersValid ?? 0} valid / {stats.teachersTotal ?? 0} total</p>
+                                    <p><strong>Classes:</strong> {stats.classesCreated ?? 0} created</p>
+                                    <p><strong>Enrollments:</strong> {stats.enrollmentsCreated ?? 0} entries</p>
                                 </div>
                             </div>
                         </div>
